@@ -42,6 +42,7 @@ project(tritonpytorchbackend LANGUAGES C CXX)
 #     PyTorch to base the build off.
 #
 option(TRITON_ENABLE_GPU "Enable GPU support in backend" ON)
+option(TRITON_ENABLE_BLADE "Enable blade support in backend" ON)
 option(TRITON_ENABLE_STATS "Include statistics collections in backend" ON)
 set(TRITON_PYTORCH_DOCKER_IMAGE "nvcr.io/nvidia/pytorch:20.12-py3" CACHE STRING
     "Docker image containing the PyTorch build required by backend.")
@@ -287,6 +288,21 @@ target_link_libraries(
     -ltorch
     -ltorchvision
 )
+
+if(${TRITON_ENABLE_BLADE})
+  message(STATUS "Using Blade Optimization for PyTorch!")
+  set(CMAKE_LINK_WHAT_YOU_USE ON)
+  target_link_directories(
+    triton-pytorch-backend
+    PRIVATE
+      /usr/local/lib
+  )
+  target_link_libraries(
+    triton-pytorch-backend
+    PRIVATE
+      torch_addons
+  )
+endif() # TRITON_ENABLE_BLADE
 
 if(${TRITON_ENABLE_GPU})
   target_link_libraries(
